@@ -18,4 +18,14 @@ export class RentalRepository{
 
         return result;
     }
+
+    async updateReturn(rentalId: number):Promise<any> {
+        const sql='UPDATE rental SET returned_at = NOW() WHERE rental_id = ? ';
+
+        const [result] = await this.pool.query(sql,[
+            rentalId,
+        ])
+
+        return result;
+    }
 }
