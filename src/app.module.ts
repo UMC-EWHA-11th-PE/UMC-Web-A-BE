@@ -7,6 +7,9 @@ import {ConfigModule} from "@nestjs/config";
 import {BookController} from "./book.controller";
 import {BookService} from "./book.service";
 import {BookRepository} from "./book.repository";
+import {RentalController} from "./rental.controller";
+import {RentalRepository} from "./rental.repository";
+import {RentalService} from "./rental.service";
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -19,13 +22,17 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
   controllers: [
       AppController,
       BookController,
+      RentalController,
   ],
 
   providers: [
       ...databaseProviders,
     AppService,
-  BookService,
-  BookRepository,
+    BookService,
+    BookRepository,
+    RentalService,
+    RentalRepository,
+
   ],
 
   exports: [...databaseProviders],

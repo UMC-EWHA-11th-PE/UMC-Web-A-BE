@@ -1,0 +1,12 @@
+import {Injectable} from "@nestjs/common";
+import {RentalRepository} from "./rental.repository";
+
+@Injectable()
+export class RentalService {
+    constructor(private readonly rentalRepository: RentalRepository) {}
+
+    async createRental(body: Record<string, any>): Promise<any> {
+        await this.rentalRepository.create(body);
+        return '대여 기록 등록이 완료되었습니다.';
+    }
+}
