@@ -5,7 +5,7 @@ import {RentalRepository} from "./rental.repository";
 export class RentalService {
     constructor(private readonly rentalRepository: RentalRepository) {}
 
-    async createRental(body: Record<string, any>): Promise<any> {
+    async createRental(body: Record<string, any>): Promise<string> {
         await this.rentalRepository.create(body);
         return '대여 기록 등록이 완료되었습니다.';
     }

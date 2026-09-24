@@ -1,5 +1,5 @@
 import {Injectable, Inject} from "@nestjs/common";
-import type { Pool } from 'mysql2/promise';
+import type { Pool, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import {DATABASE_CONNECTION} from "./database.provider";
 
 @Injectable()
@@ -8,17 +8,17 @@ export class BookRepository {
         @Inject(DATABASE_CONNECTION) private readonly pool: Pool,
     ) {}
 
-    async findAll(){
+    async findAll(): Promise<RowDataPacket[]> {
         const sql='SELECT * FROM book';
 
-        const [rows]=await this.pool.query(sql);
+        const [rows]=await this.pool.query<RowDataPacket[]>(sql);
         return rows;
     }
 
-    async create(body: Record<string, any>): Promise<any> {
+    async create(body: Record<string, any>): Promise<ResultSetHeader> {
         const sql='INSERT INTO book (category_id, title, description, is_available) VALUES (?,?,?,true)';
 
-        const [result]=await this.pool.execute(sql,[
+        const [result]=await this.pool.execute<ResultSetHeader>(sql,[
             body.categoryId,
             body.title,
             body.description,
@@ -26,10 +26,10 @@ export class BookRepository {
         return result;
     }
 
-    async findByCategory(categoryId:number):Promise<any> {
+    async findByCategory(categoryId:number):Promise<RowDataPacket[]> {
         const sql='SELECT * FROM book WHERE category_id=?';
 
-        const [rows]=await this.pool.query(sql, [
+        const [rows]=await this.pool.query<RowDataPacket[]>(sql, [
             categoryId,
         ]);
         return rows;
