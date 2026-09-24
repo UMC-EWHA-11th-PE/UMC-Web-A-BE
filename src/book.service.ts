@@ -13,4 +13,8 @@ export class BookService {
         await this.bookRepository.create(body);
         return '도서 등록이 완료되었습니다!';
     }
+
+    async getCategoryBooks(categoryId: number) {
+        return await this.bookRepository.findByCategory(categoryId);
+    }
 }
