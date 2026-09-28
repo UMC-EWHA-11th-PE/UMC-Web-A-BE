@@ -34,4 +34,5 @@ public class BookController {
     public List<Map<String, Object>> getBooksByCategoryId(@PathVariable Long categoryId) {
         return bookService.getBooksByCategoryId(categoryId);
     }
+
 }

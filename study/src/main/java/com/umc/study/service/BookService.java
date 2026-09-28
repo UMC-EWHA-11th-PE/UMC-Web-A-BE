@@ -27,4 +27,6 @@ public class BookService {
     public List<Map<String, Object>> getBooksByCategoryId(Long categoryId) {
         return bookRepository.findByCategoryId(categoryId);
     }
+
+
 }
