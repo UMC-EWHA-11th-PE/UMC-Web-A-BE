@@ -32,4 +32,5 @@ export class RentalContrlloer {
   async createRental(@Body () body: Record<string, any>): Promise<any> {
     return await this.rentalService.createRental(body);
   }
+  
 }
