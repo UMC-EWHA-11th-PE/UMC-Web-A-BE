@@ -24,12 +24,4 @@ export class BookController {
   }
 }
 
-@Controller('rentals')
-export class RentalContrlloer {
-  constructor(private readonly rentalService: RentalService) {}
 
-  @Post()
-  async createRental(@Body () body: Record<string, any>): Promise<any> {
-    return await this.rentalService.createRental(body);
-  }
-}

@@ -4,8 +4,8 @@ import { databaseProviders } from './database.provider';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { BookService, RentalService } from './book.service';
-import { BookController, RentalContrlloer } from './book.controller';
-import { BookRepository, RentalRepository } from './book.repository';
+import { BookController } from './book.controller';
+import { BookRepository } from './book.repository';
 
 @Module({
   imports: [
@@ -17,7 +17,7 @@ import { BookRepository, RentalRepository } from './book.repository';
   controllers: [
     AppController,
     BookController,
-    RentalContrlloer,
+
   ],
 
   providers: [
@@ -25,8 +25,7 @@ import { BookRepository, RentalRepository } from './book.repository';
     AppService,
     BookService,
     BookRepository,
-    RentalService,
-    RentalRepository,
+
   ],
 
   exports: [...databaseProviders],  //2. 다른 모듈/서비스에서도 쓸 수 있게 공개
