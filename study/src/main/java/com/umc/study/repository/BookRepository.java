@@ -23,17 +23,12 @@ public class BookRepository {
         return jdbcTemplate.queryForList(sql);
     }
 
-    public void save(Map<String, Object> body){
+    public void save(Long categoryId, String title, String description){
         // book_id는 AUTO_INCREMENT이므로 생략, is_available은 기본 true로 삽입
         String sql = "INSERT INTO book (category_id, title, description, is_available) VALUES (?, ?, ?, true)";
 
         // SQL 뒤에 파라미터를 차례대로 넘겨주면 ? 자리에 순서대로 안전하게 바인딩됩니다.
-        jdbcTemplate.update(
-                sql,
-                body.get("categoryId"),
-                body.get("title"),
-                body.get("description")
-        );
+        jdbcTemplate.update(sql, categoryId, title, description);
     }
 
     public List<Map<String, Object>> findByCategoryId(Long categoryId) {

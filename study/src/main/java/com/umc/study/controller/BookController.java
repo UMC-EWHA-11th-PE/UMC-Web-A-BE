@@ -3,7 +3,9 @@ package com.umc.study.controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import com.umc.study.dto.BookCreateRequest;
 import com.umc.study.service.BookService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,8 +27,8 @@ public class BookController {
     }
 
     @PostMapping
-    public String createBook(@RequestBody Map<String, Object> body){
-        bookService.createBook(body);
+    public String createBook(@Valid @RequestBody BookCreateRequest request){
+        bookService.createBook(request.categoryId(), request.title(), request.description());
         return "도서 등록이 완료되었습니다!";
     }
 

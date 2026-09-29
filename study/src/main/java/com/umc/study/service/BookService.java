@@ -20,8 +20,8 @@ public class BookService {
         return bookRepository.findAll();
     }
 
-    public void createBook(Map<String, Object> body){
-        bookRepository.save(body);
+    public void createBook(Long categoryId, String title, String description){
+        bookRepository.save(categoryId, title, description);
     }
 
     public List<Map<String, Object>> getBooksByCategoryId(Long categoryId) {

@@ -1,10 +1,10 @@
 package com.umc.study.controller;
 
+import com.umc.study.dto.RentalCreateRequest;
 import com.umc.study.service.RentalService; // RentalService를 임포트합니다!
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/rentals") // 단일 경로 /rentals 설정
@@ -15,10 +15,8 @@ public class RentalController {
     private final RentalService rentalService;
 
     @PostMapping
-    public String createRental(@RequestBody Map<String, Object> body){
-        Long userId = Long.valueOf(body.get("userId").toString());
-        Long bookId = Long.valueOf(body.get("bookId").toString());
-        rentalService.saveRental(userId, bookId);
+    public String createRental(@Valid @RequestBody RentalCreateRequest request){
+        rentalService.saveRental(request.userId(), request.bookId());
 
         return "대여가 완료되었습니다!";
     }
