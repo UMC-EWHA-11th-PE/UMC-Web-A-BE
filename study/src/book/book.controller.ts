@@ -1,5 +1,5 @@
 // src/book.controller.ts
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, ParseIntPipe } from '@nestjs/common';
 import { BookService, RentalService } from './book.service';
 
 @Controller('books') // 이 컨트롤러로 들어오는 기본 주소: /books
