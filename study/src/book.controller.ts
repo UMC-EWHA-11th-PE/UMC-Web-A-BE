@@ -25,3 +25,9 @@ export class BookController {
 }
 
 
+  @Post()
+  async createRental(@Body () body: Record<string, any>): Promise<any> {
+    return await this.rentalService.createRental(body);
+  }
+  
+}
