@@ -4,11 +4,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { databaseProviders } from './database.provider';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { BookService, RentalService } from './book/book.service';
-import { BookController } from './book/book.controller';
-import { BookRepository } from './book/book.repository';
 import { config } from 'process';
-
+import { BookModule } from './book/book.module';
 
 
 
@@ -31,23 +28,19 @@ import { config } from 'process';
         autoLoadEntities: true,
         synchronize: false,
       }),
-    })
+    }),
 
+    BookModule,
 
   ],
 
   controllers: [
     AppController,
-    BookController,
-
   ],
 
   providers: [
     ...databaseProviders,   //1. DB 커넥션 풀을 부품으로 등록
     AppService,
-    BookService,
-    BookRepository,
-
   ],
 
   exports: [...databaseProviders],  //2. 다른 모듈/서비스에서도 쓸 수 있게 공개

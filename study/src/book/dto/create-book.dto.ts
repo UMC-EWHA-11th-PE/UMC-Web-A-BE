@@ -7,6 +7,7 @@ import {
     MaxLength,
 } from 'class-validator';
 import { Book } from "../entities/book.entity";
+import { Category } from "../../category/category.entity";
 
 export class CreateBookDto {
     @IsInt()

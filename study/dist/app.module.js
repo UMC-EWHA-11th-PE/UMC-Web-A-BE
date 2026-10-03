@@ -9,12 +9,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
+const typeorm_1 = require("@nestjs/typeorm");
 const database_provider_1 = require("./database.provider");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
-const book_service_1 = require("./book.service");
-const book_controller_1 = require("./book.controller");
-const book_repository_1 = require("./book.repository");
+const book_module_1 = require("./book/book.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -23,20 +22,29 @@ exports.AppModule = AppModule = __decorate([
         imports: [
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
-            })
+            }),
+            typeorm_1.TypeOrmModule.forRootAsync({
+                imports: [config_1.ConfigModule],
+                inject: [config_1.ConfigService],
+                useFactory: (configService) => ({
+                    type: 'mysql',
+                    host: configService.getOrThrow('DB_HOST'),
+                    port: 3306,
+                    username: configService.getOrThrow('DB_USER'),
+                    password: configService.getOrThrow('DB_PASSWORD'),
+                    database: configService.getOrThrow('DB_NAME'),
+                    autoLoadEntities: true,
+                    synchronize: false,
+                }),
+            }),
+            book_module_1.BookModule,
         ],
         controllers: [
             app_controller_1.AppController,
-            book_controller_1.BookController,
-            book_controller_1.RentalContrlloer,
         ],
         providers: [
             ...database_provider_1.databaseProviders,
             app_service_1.AppService,
-            book_service_1.BookService,
-            book_repository_1.BookRepository,
-            book_service_1.RentalService,
-            book_repository_1.RentalRepository,
         ],
         exports: [...database_provider_1.databaseProviders],
     })

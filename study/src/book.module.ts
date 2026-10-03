@@ -1,3 +1,0 @@
-@Module({
-    imports: [TypeOrmModule.for]
-})

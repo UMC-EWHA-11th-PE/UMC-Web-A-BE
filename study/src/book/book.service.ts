@@ -1,38 +1,75 @@
-// src/book.service.ts
+
 import { Injectable } from '@nestjs/common';
 import { BookRepository, RentalRepository } from './book.repository';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+
+import { CreateBookDto, BookResponseDto } from './dto/create-book.dto';
+import { CreateRentalDto, RentalResponseDto } from '../rental/rental.dto';
+
+import { Book } from './entities/book.entity';
+import { Category } from '../category/category.entity';
+import { User } from '../user/user.entity';
+import { Rental } from '../rental/rental.entity';
 
 @Injectable()
 export class BookService {
-  // 창고지기(BookRepository)를 주입받습니다.
-  constructor(private readonly bookRepository: BookRepository) {}
+  constructor(
+    @InjectRepository(Book)
+    private readonly bookRepository: Repository<Book>
+  ) {}
 
-  async getAllBooks(): Promise<any> {
-    return await this.bookRepository.findAll();
+
+  //전체 도서 조회
+  async getAllBooks(): Promise<BookResponseDto[]> {
+    const result = await this.bookRepository.find({ 
+      relations: {'category':true},
+      order: {bookId: 'DESC'},
+    });
+    return result.map(BookResponseDto.from);
   }
 
-  async createBook(body: Record<string, any>) : Promise<string> {
-    await this.bookRepository.create(body);
-    return '도서 등록이 완료되었습니다.';
+  //도서 등록
+  async createBook(createBookDto: CreateBookDto) : Promise<BookResponseDto> {
+    const newBook = this.bookRepository.create(createBookDto);
+    const saved = await this.bookRepository.save(newBook);
+
+    const result = await this.bookRepository.findOneOrFail({
+      where: { bookId: saved.bookId },
+      relations: { category: true },
+    });
+
+    return BookResponseDto.from(result);
   }
 
-  async findCategoryBook(categoryId: number): Promise<any> {
-    return await this.bookRepository.categoryBooks(categoryId);
+  //카테고리별 도서 조회
+  async findCategoryBook(categoryId: number): Promise<BookResponseDto[]> {
+    const result = await this.bookRepository.find({
+      where: { categoryId },
+      relations: { 'category': true}
+    });
+    return result.map(BookResponseDto.from);
   }
 }
+
 
 @Injectable()
 export class RentalService {
-  constructor(private readonly rentalRepository: RentalRepository) {}
+  constructor(
+    @InjectRepository(Rental)
+    private readonly rentalRepository: Repository<Rental>
+  ) {}
 
-  async createRental(body: Record<string, any>): Promise<any> {
-    return await this.rentalRepository.create(body);
+  //책 대여 기록 만들기
+  async createRental(createRentalDto: CreateRentalDto): Promise<RentalResponseDto> {
+    const now = new Date();
+    const rentedAt = new Date(now);
+    const dueAt = new Date(now);
+    dueAt.setDate(dueAt.getDate() + 7);
+
+    const newRental = this.rentalRepository.create({...createRentalDto, dueAt, rentedAt});
+    const result = await this.rentalRepository.save(newRental);
+
+    return RentalResponseDto.from(result);
   }
 }
-
-
-//0. getAllBooks() 호출
-//1. this.bookRepository.findAll() 호출 :bookRepository에게 DB가서 책 목록 가져와
-//2. findAll이 promise 객체 생성 :DB 갔다 오는동안 promise(영수증) 받고 기다려 
-//3. await 으로 기다리기 -> promise가 데이터로 풀릴 때까지 대기
-//4. 데이터 반환 :await덕분에 promise 포장지 벗겨진 응답 JSON이 유저에게 전달됨
