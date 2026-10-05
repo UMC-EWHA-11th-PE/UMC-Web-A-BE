@@ -18,7 +18,7 @@ export const databaseProviders = [
                 database: configService.get<string>('DB_NAME', 'umc11th'),
                 waitForConnections: true, // 선로가 꽉 차면 에러 대신 대기
                 connectionLimit: 10,      // 미리 뚫어둘 핫라인(커넥션) 개수 10개
-                queueLimit: 0,
+                queueLimit: 50,
             });
         },
     },
