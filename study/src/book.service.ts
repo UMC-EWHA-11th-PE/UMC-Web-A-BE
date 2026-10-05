@@ -1,17 +1,47 @@
-// src/book.service.ts
-import { Injectable } from '@nestjs/common';
-import { BookRepository } from './book.repository';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Book } from './book.entity';
+import { Category } from './category.entity';
+import { CreateBookDto, BookResponseDto } from './book.dto';
 
 @Injectable()
 export class BookService {
-  // 창고지기(BookRepository)를 주입받습니다.
-  constructor(private readonly bookRepository: BookRepository) {}
+  constructor(
+    @InjectRepository(Book)
+    private readonly bookRepository: Repository<Book>,
 
-  async getAllBooks(): Promise<any> {
-    return await this.bookRepository.findAll();
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
+  ) {}
+
+  async findAll(): Promise<BookResponseDto[]> {
+    const books = await this.bookRepository.find({
+      relations: { category: true },
+      order: { bookId: 'DESC' },
+    });
+
+    return books.map((book) => BookResponseDto.from(book));
   }
-  async createBook(body: Record<string, any>): Promise<string> {
-    await this.bookRepository.create(body);
-    return '도서 등록이 완료되었습니다!';
+
+  async createBook(dto: CreateBookDto): Promise<BookResponseDto> {
+    const category = await this.categoryRepository.findOneBy({
+      categoryId: dto.categoryId,
+    });
+
+    if (!category) {
+      throw new NotFoundException('존재하지 않는 카테고리입니다.');
+    }
+
+    const book = this.bookRepository.create({
+      category,
+      title: dto.title,
+      description: dto.description ?? null,
+      isAvailable: true,
+    });
+
+    const savedBook = await this.bookRepository.save(book);
+
+    return BookResponseDto.from(savedBook);
   }
 }
