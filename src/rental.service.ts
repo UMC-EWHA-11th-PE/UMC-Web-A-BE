@@ -1,4 +1,4 @@
-import {BadRequestException, Injectable} from "@nestjs/common";
+import {BadRequestException, Injectable, NotFoundException} from "@nestjs/common";
 import {RentalRepository} from "./rental.repository";
 
 @Injectable()
@@ -20,7 +20,10 @@ export class RentalService {
     }
 
     async updateRentalReturn(rentalId: number): Promise<string> {
-        await this.rentalRepository.updateReturn(rentalId);
+        const result= await this.rentalRepository.updateReturn(rentalId);
+        if(result.affectedRows==0){
+            throw new NotFoundException("반납할 대여 기록이 없습니다.");
+        }
         return '도서가 반납 처리되었습니다.'
     }
 }

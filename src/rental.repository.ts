@@ -20,7 +20,7 @@ export class RentalRepository{
     }
 
     async updateReturn(rentalId: number):Promise<ResultSetHeader> {
-        const sql='UPDATE rental SET returned_at = NOW() WHERE rental_id = ? ';
+        const sql='UPDATE rental SET returned_at = NOW() WHERE rental_id = ? AND returned_at IS NULL';
 
         const [result] = await this.pool.query<ResultSetHeader>(sql,[
             rentalId,
