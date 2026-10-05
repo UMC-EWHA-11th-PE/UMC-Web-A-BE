@@ -1,40 +1,57 @@
-import { Module } from '@nestjs/common';
-import { createObserveModule } from '@nestjs/observe';
+import {Module} from '@nestjs/common';
+import {createObserveModule} from '@nestjs/observe';
 import {databaseProviders} from "./database.provider";
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import {ConfigModule} from "@nestjs/config";
-import {BookController} from "./book.controller";
-import {BookService} from "./book.service";
-import {BookRepository} from "./book.repository";
+import {AppController} from './app.controller';
+import {AppService} from './app.service';
+import {ConfigModule, ConfigService} from "@nestjs/config";
 import {RentalController} from "./rental.controller";
 import {RentalRepository} from "./rental.repository";
 import {RentalService} from "./rental.service";
+import {TypeOrmModule} from "@nestjs/typeorm";
+import {BookModule} from "./book.module";
 
-export const { ObserveModule, ObserveInstrument } = createObserveModule();
+export const {ObserveModule, ObserveInstrument} = createObserveModule();
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
-  ],
-  controllers: [
-      AppController,
-      BookController,
-      RentalController,
-  ],
+    imports: [
+        ConfigModule.forRoot({
+            isGlobal: true,
+        }),
 
-  providers: [
-      ...databaseProviders,
-    AppService,
-    BookService,
-    BookRepository,
-    RentalService,
-    RentalRepository,
+        TypeOrmModule.forRootAsync({
+            inject: [ConfigService],
+            useFactory: (config: ConfigService) => ({
+                type: 'mysql',
+                host: config.getOrThrow('DB_HOST'),
+                port: 3306,
+                username: config.getOrThrow('DB_USER'),
+                password: config.getOrThrow('DB_PASSWORD'),
+                database: config.getOrThrow('DB_NAME'),
+                autoLoadEntities: true,
+                synchronize: false,
+            })
+        }),
 
-  ],
+        BookModule,
+    ],
 
-  exports: [...databaseProviders],
+    controllers: [
+        AppController,
+        RentalController,
+    ],
+
+    providers:
+        [
+            ...databaseProviders,
+            AppService,
+            RentalService,
+            RentalRepository,
+
+        ],
+
+    exports:
+        [...databaseProviders],
 })
-export class AppModule {}
+
+export class AppModule {
+}
