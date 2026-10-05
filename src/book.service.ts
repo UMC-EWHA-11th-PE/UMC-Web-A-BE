@@ -11,8 +11,8 @@ export class BookService {
         return await this.bookRepository.findAll();
     }
 
-    async createBook(body: Record<string, any>): Promise<string> {
-        const {categoryId, title, description} = body;
+    async createBook(body: Record<string, any>|undefined): Promise<string> {
+        const {categoryId, title, description} = body??{};
 
         if (!Number.isInteger(categoryId) || categoryId <= 0) {
             throw new BadRequestException("Category Id는 양의 정수여야 합니다.");
@@ -24,7 +24,7 @@ export class BookService {
             throw new BadRequestException('description은 문자열이어야 합니다.')
         }
 
-        await this.bookRepository.create(body);
+        await this.bookRepository.create({categoryId, title, description});
         return '도서 등록이 완료되었습니다!';
     }
 
