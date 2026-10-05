@@ -15,16 +15,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BookController = void 0;
 const common_1 = require("@nestjs/common");
 const book_service_1 = require("./book.service");
+const book_dto_1 = require("./book.dto");
 let BookController = class BookController {
     bookService;
     constructor(bookService) {
         this.bookService = bookService;
     }
-    async getBooks() {
-        return await this.bookService.getAllBooks();
+    getBooks() {
+        return this.bookService.findAll();
     }
-    async createBook(body) {
-        return await this.bookService.createBook(body);
+    createBook(dto) {
+        return this.bookService.createBook(dto);
     }
 };
 exports.BookController = BookController;
@@ -38,7 +39,7 @@ __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [book_dto_1.CreateBookDto]),
     __metadata("design:returntype", Promise)
 ], BookController.prototype, "createBook", null);
 exports.BookController = BookController = __decorate([

@@ -1,7 +1,8 @@
 import { BookService } from './book.service';
+import { CreateBookDto, BookResponseDto } from './book.dto';
 export declare class BookController {
     private readonly bookService;
     constructor(bookService: BookService);
-    getBooks(): Promise<any>;
-    createBook(body: Record<string, any>): Promise<string>;
+    getBooks(): Promise<BookResponseDto[]>;
+    createBook(dto: CreateBookDto): Promise<BookResponseDto>;
 }

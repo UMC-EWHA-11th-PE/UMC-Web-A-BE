@@ -15,6 +15,9 @@ const app_service_1 = require("./app.service");
 const book_controller_1 = require("./book.controller");
 const book_service_1 = require("./book.service");
 const book_repository_1 = require("./book.repository");
+const typeorm_1 = require("@nestjs/typeorm");
+const book_entity_1 = require("./book.entity");
+const category_entity_1 = require("./category.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -24,6 +27,21 @@ exports.AppModule = AppModule = __decorate([
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
             }),
+            typeorm_1.TypeOrmModule.forRootAsync({
+                imports: [config_1.ConfigModule],
+                inject: [config_1.ConfigService],
+                useFactory: (configService) => ({
+                    type: 'mysql',
+                    host: configService.getOrThrow('DB_HOST'),
+                    port: 3306,
+                    username: configService.getOrThrow('DB_USER'),
+                    password: configService.getOrThrow('DB_PASSWORD'),
+                    database: configService.getOrThrow('DB_NAME'),
+                    autoLoadEntities: true,
+                    synchronize: false,
+                }),
+            }),
+            typeorm_1.TypeOrmModule.forFeature([book_entity_1.Book, category_entity_1.Category]),
         ],
         controllers: [app_controller_1.AppController, book_controller_1.BookController],
         providers: [

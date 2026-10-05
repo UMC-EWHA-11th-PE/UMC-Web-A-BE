@@ -8,26 +8,54 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BookService = void 0;
 const common_1 = require("@nestjs/common");
-const book_repository_1 = require("./book.repository");
+const typeorm_1 = require("@nestjs/typeorm");
+const typeorm_2 = require("typeorm");
+const book_entity_1 = require("./book.entity");
+const category_entity_1 = require("./category.entity");
+const book_dto_1 = require("./book.dto");
 let BookService = class BookService {
     bookRepository;
-    constructor(bookRepository) {
+    categoryRepository;
+    constructor(bookRepository, categoryRepository) {
         this.bookRepository = bookRepository;
+        this.categoryRepository = categoryRepository;
     }
-    async getAllBooks() {
-        return await this.bookRepository.findAll();
+    async findAll() {
+        const books = await this.bookRepository.find({
+            relations: { category: true },
+            order: { bookId: 'DESC' },
+        });
+        return books.map((book) => book_dto_1.BookResponseDto.from(book));
     }
-    async createBook(body) {
-        await this.bookRepository.create(body);
-        return '도서 등록이 완료되었습니다!';
+    async createBook(dto) {
+        const category = await this.categoryRepository.findOneBy({
+            categoryId: dto.categoryId,
+        });
+        if (!category) {
+            throw new common_1.NotFoundException('존재하지 않는 카테고리입니다.');
+        }
+        const book = this.bookRepository.create({
+            category,
+            title: dto.title,
+            description: dto.description ?? null,
+            isAvailable: true,
+        });
+        const savedBook = await this.bookRepository.save(book);
+        return book_dto_1.BookResponseDto.from(savedBook);
     }
 };
 exports.BookService = BookService;
 exports.BookService = BookService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [book_repository_1.BookRepository])
+    __param(0, (0, typeorm_1.InjectRepository)(book_entity_1.Book)),
+    __param(1, (0, typeorm_1.InjectRepository)(category_entity_1.Category)),
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository])
 ], BookService);
 //# sourceMappingURL=book.service.js.map
