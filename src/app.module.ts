@@ -23,7 +23,7 @@ export const {ObserveModule, ObserveInstrument} = createObserveModule();
             useFactory: (config: ConfigService) => ({
                 type: 'mysql',
                 host: config.getOrThrow('DB_HOST'),
-                port: 3306,
+                port: Number(config.get('DB_PORT', 3306)),
                 username: config.getOrThrow('DB_USER'),
                 password: config.getOrThrow('DB_PASSWORD'),
                 database: config.getOrThrow('DB_NAME'),
