@@ -1,34 +1,60 @@
-import {BadRequestException, Injectable} from '@nestjs/common';
-import {BookRepository} from "./book.repository";
-import type {RowDataPacket} from "mysql2/promise";
+import {ConflictException, Injectable, NotFoundException} from '@nestjs/common';
+import {InjectRepository} from "@nestjs/typeorm";
+import {Book} from "./book.entity";
+import {Like, QueryFailedError, Repository} from "typeorm";
+import {Category} from "./category.entity";
+import {BookResponseDto} from "./book-response.dto";
+import {CreateBookDTO} from "./create-book.dto";
 
 @Injectable()
 export class BookService {
-    constructor(private readonly bookRepository: BookRepository) {
+    constructor(
+        @InjectRepository(Book)
+        private readonly bookRepository: Repository<Book>,
+        @InjectRepository(Category)
+        private readonly categoryRepository: Repository<Category>,
+    ) {
     }
 
-    async getAllBooks(): Promise<RowDataPacket[]> {
-        return await this.bookRepository.findAll();
+    // 모든 도서 최신 등록 순 조회 (keyword가 있으면 제목으로 검색)
+    async getAllBooks(keyword?: string): Promise<BookResponseDto[]> {
+        const books = await this.bookRepository.find(
+            {
+                where: keyword ? {title: Like(`%${keyword}%`)} : {},
+                relations: {category: true},
+                order: {bookId: 'DESC'},
+            }
+        );
+        return books.map(BookResponseDto.from)
     }
 
-    async createBook(body: Record<string, any>|undefined): Promise<string> {
-        const {categoryId, title, description} = body??{};
-
-        if (!Number.isInteger(categoryId) || categoryId <= 0) {
-            throw new BadRequestException("Category Id는 양의 정수여야 합니다.");
+    // 신규 도서 저장
+    async createBook(dto: CreateBookDTO): Promise<BookResponseDto> {
+        const category = await this.categoryRepository.findOne({
+            where: {categoryId: dto.categoryId},
+        });
+        if (!category) {
+            throw new NotFoundException("존재하지 않는 카테고리입니다.");
         }
-        if (typeof title != 'string' || title.trim() === '') {
-            throw new BadRequestException('title은 비어 있지 않은 문자열이어야 합니다.');
-        }
-        if (typeof description != 'string') {
-            throw new BadRequestException('description은 문자열이어야 합니다.')
-        }
 
-        await this.bookRepository.create({categoryId, title, description});
-        return '도서 등록이 완료되었습니다!';
+        const book = this.bookRepository.create({
+            category,
+            title: dto.title,
+            description: dto.description ?? null,
+        });
+
+        try {
+            const saved = await this.bookRepository.save(book);
+            return BookResponseDto.from(saved);
+        } catch (e) {
+            if (e instanceof QueryFailedError && (e.driverError as { code?: string })?.code === 'ER_DUP_ENTRY') {
+                throw new ConflictException("이미 등록된 도서입니다.");
+            }
+            throw e;
+        }
     }
 
-    async getCategoryBooks(categoryId: number): Promise<RowDataPacket[]> {
-        return await this.bookRepository.findByCategory(categoryId);
-    }
+    // async getCategoryBooks(categoryId: number): Promise<RowDataPacket[]> {
+    //     return await this.bookRepository.findByCategory(categoryId);
+    // }
 }
