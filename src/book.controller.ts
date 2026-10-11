@@ -1,4 +1,4 @@
-import {Body, Controller, Get, HttpCode, Post} from '@nestjs/common';
+import {Body, Controller, Get, HttpCode, Post, Query} from '@nestjs/common';
 import { BookService } from './book.service';
 import {BookResponseDto} from "./book-response.dto";
 import {CreateBookDTO} from "./create-book.dto";
@@ -9,8 +9,8 @@ export class BookController{
 
     // HTTP GET 방식으로 /books 요청이 들어왔을 때 실행되는 핸들러
     @Get()
-    async getBooks(): Promise<BookResponseDto[]>{
-        return await this.bookService.getAllBooks();
+    async getBooks(@Query('keyword') keyword?: string): Promise<BookResponseDto[]>{
+        return await this.bookService.getAllBooks(keyword);
     }
 
     // HTTP POST
