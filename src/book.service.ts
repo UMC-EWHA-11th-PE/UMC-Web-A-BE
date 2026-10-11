@@ -1,7 +1,7 @@
-import {Injectable, NotFoundException} from '@nestjs/common';
+import {ConflictException, Injectable, NotFoundException} from '@nestjs/common';
 import {InjectRepository} from "@nestjs/typeorm";
 import {Book} from "./book.entity";
-import {Repository} from "typeorm";
+import {Like, QueryFailedError, Repository} from "typeorm";
 import {Category} from "./category.entity";
 import {BookResponseDto} from "./book-response.dto";
 import {CreateBookDTO} from "./create-book.dto";
@@ -16,10 +16,11 @@ export class BookService {
     ) {
     }
 
-    // 모든 도서 최신 등록 순 조회
-    async getAllBooks(): Promise<BookResponseDto[]> {
+    // 모든 도서 최신 등록 순 조회 (keyword가 있으면 제목으로 검색)
+    async getAllBooks(keyword?: string): Promise<BookResponseDto[]> {
         const books = await this.bookRepository.find(
             {
+                where: keyword ? {title: Like(`%${keyword}%`)} : {},
                 relations: {category: true},
                 order: {bookId: 'DESC'},
             }
@@ -42,8 +43,15 @@ export class BookService {
             description: dto.description ?? null,
         });
 
-        const saved = await this.bookRepository.save(book);
-        return BookResponseDto.from(saved);
+        try {
+            const saved = await this.bookRepository.save(book);
+            return BookResponseDto.from(saved);
+        } catch (e) {
+            if (e instanceof QueryFailedError && (e.driverError as { code?: string })?.code === 'ER_DUP_ENTRY') {
+                throw new ConflictException("이미 등록된 도서입니다.");
+            }
+            throw e;
+        }
     }
 
     // async getCategoryBooks(categoryId: number): Promise<RowDataPacket[]> {
