@@ -1,5 +1,6 @@
-import { Controller, Get, Param } from "@nestjs/common";
+import { Controller, Get, Post, HttpCode, HttpStatus, Param, Body } from "@nestjs/common";
 import { MemberService } from "../service/member.service";
+import { CreateMemberDto } from "../dto/create-member.dto";
 
 @Controller("members")
 export class MemberController {
@@ -13,6 +14,18 @@ export class MemberController {
     @Get("email/:email")
     checkEmail(@Param("email") email: string) {
         return this.memberService.checkEmail(email);
+    }
+
+    @Post()
+    @HttpCode(HttpStatus.CREATED)
+    async signUp(@Body() dto: CreateMemberDto) {
+        const result = await this.memberService.signUp(dto);
+        return {
+            isSuccess: true,
+            code: "COMMON201",
+            message: "회원가입에 성공했습니다.",
+            result,
+        };
     }
 
 }
