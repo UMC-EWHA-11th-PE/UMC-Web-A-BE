@@ -5,6 +5,7 @@ import {Member} from "../entity/member.entity";
 import {CheckResponseDto} from "../dto/check-response.dto";
 import {CreateMemberDto} from "../dto/create-member.dto";
 import * as bcrypt from "bcrypt";
+import {isDuplicateKeyError} from "../common/db-error.util";
 
 @Injectable()
 export class MemberService {
@@ -37,13 +38,22 @@ export class MemberService {
             throw new ConflictException('이미 사용중인 닉네임입니다.')
         }
 
-        const savedMember=await this.memberRepository.save(
-            this.memberRepository.create({
-                email: dto.email,
-                password: await bcrypt.hash(dto.password, 10),
-                nickname: dto.nickname,
-            }),
-        );
+        const member = this.memberRepository.create({
+            email: dto.email,
+            password: await bcrypt.hash(dto.password, 10),
+            nickname: dto.nickname,
+        });
+
+        let savedMember: Member;
+        try {
+            savedMember = await this.memberRepository.save(member);
+        } catch (e) {
+            if (isDuplicateKeyError(e)) {
+                const emailTaken = await this.memberRepository.exists({where: {email: dto.email}});
+                throw new ConflictException(emailTaken ? '이미 사용중인 이메일입니다.' : '이미 사용중인 닉네임입니다.');
+            }
+            throw e;
+        }
 
         return{
             memberId: savedMember.memberId,

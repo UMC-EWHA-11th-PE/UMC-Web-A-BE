@@ -6,6 +6,7 @@ import {Member} from "../entity/member.entity";
 import {RatingResponseDto} from "../dto/rating-response.dto";
 import {CreateRatingDto} from "../dto/create-rating.dto";
 import {UpdateRatingDto} from "../dto/update-rating.dto";
+import {isDuplicateKeyError} from "../common/db-error.util";
 
 @Injectable()
 export class RatingService {
@@ -44,15 +45,22 @@ export class RatingService {
             throw new ConflictException('이미 이 영화에 평점을 남기셨습니다.');
         }
 
-        const saved = await this.ratingRepository.save(
-            this.ratingRepository.create({
-                member,
-                movieId: dto.movieId,
-                score: dto.score,
-                comment: dto.comment ?? null,
-            }),
-        );
-        return saved.ratingId;
+        const rating = this.ratingRepository.create({
+            member,
+            movieId: dto.movieId,
+            score: dto.score,
+            comment: dto.comment ?? null,
+        });
+
+        try {
+            const saved = await this.ratingRepository.save(rating);
+            return saved.ratingId;
+        } catch (e) {
+            if (isDuplicateKeyError(e)) {
+                throw new ConflictException('이미 이 영화에 평점을 남기셨습니다.');
+            }
+            throw e;
+        }
     }
 
     async update(ratingId: number, memberId: number, dto: UpdateRatingDto): Promise<void> {
