@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { ConflictException, ForbiddenException, Injectable, NotFoundException, HttpStatus } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 
@@ -9,6 +9,7 @@ import { RatingResponseDto } from "../dto/rating-response.dto";
 import { CreateRatingDto } from "../dto/create-rating.dto";
 import { updateRatingDto } from "../dto/update-rating.dto";
 
+import { ApiException } from "../exception/api.exception";
 
 @Injectable()
 export class RatingService {
@@ -19,32 +20,44 @@ export class RatingService {
         private readonly memberRepository: Repository<Member>,
     ) {}
 
-    async getRatings(memberId: number) :Promise<RatingResponseDto[]> {
-        
-        const isExist = await this.memberRepository.exists({where: {memberId}});
-        if(!isExist) {
-            throw new NotFoundException();
+    async getRatingsByMember(memberId: number) :Promise<RatingResponseDto[]> {
+
+        const member = await this.memberRepository.findOneBy({ memberId });
+        if(!member) {
+            throw new ApiException(
+                HttpStatus.NOT_FOUND,
+                'MEMBER404_1',
+                '해당 회원을 찾을 수 없습니다.',
+            );
         }
 
-        const ratingList = await this.ratingRepository.find({
+        const ratings = await this.ratingRepository.find({
             where: { member: { memberId: memberId } },
             order: { createdAt: "DESC" }
         })
 
-        return ratingList;
+        return ratings.map(RatingResponseDto.from);
     }
 
-    async create(memberId: number, dto: CreateRatingDto): Promise<number> {
+    async create(memberId: number, dto: CreateRatingDto): Promise<RatingResponseDto> {
         const member = await this.memberRepository.findOneBy({ memberId });
         if(!member) {
-            throw new NotFoundException('존재하지 않는 유저입니다.');
+            throw new ApiException(
+                HttpStatus.NOT_FOUND,
+                'MEMBER404_1',
+                '해당 회원을 찾을 수 없습니다.',
+            );
         }
 
         const existing = await this.ratingRepository.findOne({
             where: { member: { memberId }, movieId: dto.movieId },
         });
         if(existing) {
-            throw new ConflictException('이미 이 영화에 평점을 남겼습니다.');
+            throw new ApiException(
+                HttpStatus.CONFLICT,
+                'RATING409_1',
+                '이미 이 영화에 평점을 남기셨습니다.',
+            );
         }
 
         const saved = await this.ratingRepository.save(
@@ -56,37 +69,50 @@ export class RatingService {
             })
         )
 
-        return saved.ratingId;
+        return RatingResponseDto.from(saved);
     }
 
-    async update(ratingId: number, memberId: number, dto: updateRatingDto) : Promise<void> {
-        const rating = await this.findOwnedRating(ratingId, memberId);
+
+
+    async update(memberId: number, ratingId: number, dto: updateRatingDto) : Promise<RatingResponseDto> {
+        const rating = await this.findOwnedRating(memberId, ratingId);
 
         rating.score = dto.score;
         rating.comment = dto.comment ?? null;
 
-        await this.ratingRepository.save(rating);
-    }
-
-    async delete(ratingId: number, memberId: number): Promise<void> {
-        const rating = await this.findOwnedRating(ratingId, memberId);
-
-        await this.ratingRepository.save(rating);
+        const saved = await this.ratingRepository.save(rating);
+        return RatingResponseDto.from(saved);
     }
 
     
-    private async findOwnedRating(ratingId: number, memberId: number) :Promise<Rating> {
+
+    async delete(memberId: number, ratingId: number): Promise<void> {
+        const rating = await this.findOwnedRating(memberId, ratingId);
+
+        await this.ratingRepository.remove(rating);
+    }
+
+    
+    private async findOwnedRating(memberId: number, ratingId: number) :Promise<Rating> {
         const rating = await this.ratingRepository.findOne({
             where: { ratingId },
             relations: { member: true },
         });
 
         if(!rating) {
-            throw new NotFoundException("존재하지 않는 평점입니다.");
+            throw new ApiException(
+                HttpStatus.NOT_FOUND,
+                'RATING404_1',
+                '해당 평점을 찾을 수 없습니다.',
+            );
         }
 
-        if(rating.member.memberId) {
-            throw new ForbiddenException("본인이 작성한 평점만 수정하거나 삭제할 수 있습니다.");
+        if(rating.member.memberId !== memberId) {
+            throw new ApiException(
+                HttpStatus.FORBIDDEN,
+                'RATING403_1',
+                '본인이 작성한 평점만 수정하거나 삭제할 수 있습니다.',
+            );
         }
 
         return rating;

@@ -1,6 +1,11 @@
-import { Controller, Get, Post, HttpCode, HttpStatus, Param, Body } from "@nestjs/common";
+import { Controller, Get, Post, Patch, HttpCode, HttpStatus, Param, Body, Req } from "@nestjs/common";
 import { MemberService } from "../service/member.service";
 import { CreateMemberDto } from "../dto/create-member.dto";
+
+import { AuthGuard } from "../guard/auth.guard";
+import { UseGuards } from "@nestjs/common";
+import { Request } from "@nestjs/common";
+import { MemberUpdateRequestDto } from "../dto/member-update-request.dto";
 
 @Controller("members")
 export class MemberController {
@@ -24,6 +29,35 @@ export class MemberController {
             isSuccess: true,
             code: "COMMON201",
             message: "회원가입에 성공했습니다.",
+            result,
+        };
+    }
+
+    @Get('me')
+    @UseGuards(AuthGuard)
+    async getMyInfo(@Req() request: Request & { memberId: number }) {
+        const memberId = request['memberId'] as number;
+        const result = await this.memberService.getMyInfo(memberId);
+        return { 
+            isSuccess: true,
+            code: 'COMMON200',
+            result,
+        }
+    }
+
+    @Patch('me') 
+    @UseGuards(AuthGuard)
+    async updateMyInfo(
+        @Req() request: Request & { memberId: number },
+        @Body() dto: MemberUpdateRequestDto,
+    ) {
+        const memberId = request['memberId'] as number;
+        const result = await this.memberService.updateMyInfo(memberId, dto)
+
+        return {
+            isSuccess: true,
+            code: 'COMMON200',
+            message: '회원 정보를 수정했습니다.',
             result,
         };
     }
