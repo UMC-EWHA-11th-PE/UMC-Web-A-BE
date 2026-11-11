@@ -4,6 +4,7 @@ import type {Request} from "express";
 import {ApiException} from "../filter/api.exception";
 
 const BEARER_PREFIX = 'Bearer ';
+const BEARER_PATTERN = /^Bearer\s+(\S+)\s*$/i;
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -12,9 +13,9 @@ export class AuthGuard implements CanActivate {
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest<Request>();
-        const header = request.headers.authorization;
+        const match=request.headers.authorization?.match(BEARER_PATTERN);
 
-        if (!header || !header.startsWith(BEARER_PREFIX)) {
+        if (!match) {
             throw new ApiException(
                 HttpStatus.UNAUTHORIZED,
                 'AUTH401_2',
@@ -22,7 +23,7 @@ export class AuthGuard implements CanActivate {
             );
         }
 
-        const token = header.slice(BEARER_PREFIX.length);
+        const token = match[1];
 
         try {
             const payload = await this.jwtService.verifyAsync<{ sub: string; email: string }>(token);
