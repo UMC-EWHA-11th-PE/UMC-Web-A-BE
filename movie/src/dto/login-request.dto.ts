@@ -1,4 +1,5 @@
 import {IsEmail, IsNotEmpty, IsString} from "class-validator";
+import {MaxBcryptBytes} from "../common/password.util";
 
 export class LoginRequestDto {
     @IsEmail({}, {message: '이메일 형식이 올바르지 않습니다.'})
@@ -6,6 +7,7 @@ export class LoginRequestDto {
     email: string;
 
     @IsString()
+    @MaxBcryptBytes()
     @IsNotEmpty({message: '비밀번호를 입력해주세요.'})
     password: string;
 }
