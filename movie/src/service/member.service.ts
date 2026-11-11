@@ -106,7 +106,18 @@ export class MemberService {
         }
 
         member.nickname = dto.nickname;
-        await this.memberRepository.save(member);
+        try{
+            await this.memberRepository.save(member);
+        } catch (e) {
+            if(isDuplicateKeyError(e)) {
+                throw new ApiException(
+                    HttpStatus.CONFLICT,
+                    'MEMBER409_1',
+                    '이미 사용 중인 닉네임입니다.'
+                )
+            }
+            throw e;
+        }
 
         return MemberInfoResponseDto.from(member);
     }
