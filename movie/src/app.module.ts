@@ -1,29 +1,43 @@
-import { Module } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
-import { TypeOrmModule } from "@nestjs/typeorm";
-import { Member } from "./entity/member.entity";
-import { Rating } from "./entity/rating.entity";
-import { MemberController } from "./controller/member.controller";
-import { RatingController } from "./controller/rating.controller";
-import { MemberService } from "./service/member.service";
-import { RatingService } from "./service/rating.service";
+import {Module} from "@nestjs/common";
+import {ConfigModule, ConfigService} from "@nestjs/config";
+import {JwtModule} from "@nestjs/jwt";
+import {TypeOrmModule} from "@nestjs/typeorm";
+import {Member} from "./entity/member.entity";
+import {Rating} from "./entity/rating.entity";
+import {AuthController} from "./controller/auth.controller";
+import {AuthService} from "./service/auth.service";
+import {MemberController} from "./controller/member.controller";
+import {RatingController} from "./controller/rating.controller";
+import {MemberService} from "./service/member.service";
+import {RatingService} from "./service/rating.service";
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    TypeOrmModule.forRoot({
-      type: "mysql",
-      host: process.env.DB_HOST,
-      port: 3306,
-      username: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-      autoLoadEntities: true,
-      synchronize: false,
-    }),
-    TypeOrmModule.forFeature([Member, Rating]),
-  ],
-  controllers: [MemberController, RatingController],
-  providers: [MemberService, RatingService],
+    imports: [
+        ConfigModule.forRoot({isGlobal: true}),
+        TypeOrmModule.forRoot({
+            type: "mysql",
+            host: process.env.DB_HOST,
+            port: 3306,
+            username: process.env.DB_USER,
+            password: process.env.DB_PASSWORD,
+            database: process.env.DB_NAME,
+            autoLoadEntities: true,
+            synchronize: false,
+        }),
+        TypeOrmModule.forFeature([Member, Rating]),
+        JwtModule.registerAsync({
+            global: true,
+            inject: [ConfigService],
+            useFactory: (configService: ConfigService) => ({
+                secret: configService.get<string>('JWT_SECRET'),
+                signOptions: {
+                    expiresIn: Number(configService.get<string>('JWT_ACCESS_EXPIRATION') ?? 3600),
+                },
+            }),
+        }),
+    ],
+    controllers: [AuthController, MemberController, RatingController],
+    providers: [AuthService, MemberService, RatingService],
 })
-export class AppModule {}
+export class AppModule {
+}
