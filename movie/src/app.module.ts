@@ -12,6 +12,8 @@ import {MemberService} from "./service/member.service";
 import {RatingService} from "./service/rating.service";
 import {FavoriteController} from "./controller/favorite.controller";
 import {FavoriteService} from "./service/favorite.service";
+import {MovieRecordController} from "./controller/movie-record.controller";
+import {MovieRecordService} from "./service/movie-record.service";
 import {Favorite} from "./entity/favorite.entity";
 
 @Module({
@@ -39,8 +41,8 @@ import {Favorite} from "./entity/favorite.entity";
             }),
         }),
     ],
-    controllers: [AuthController, MemberController, RatingController, FavoriteController],
-    providers: [AuthService, MemberService, RatingService, FavoriteService],
+    controllers: [AuthController, MemberController, RatingController, FavoriteController, MovieRecordController],
+    providers: [AuthService, MemberService, RatingService, FavoriteService, MovieRecordService],
 })
 export class AppModule {
 }
