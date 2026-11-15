@@ -10,6 +10,7 @@ import {MemberController} from "./controller/member.controller";
 import {RatingController} from "./controller/rating.controller";
 import {MemberService} from "./service/member.service";
 import {RatingService} from "./service/rating.service";
+import {Favorite} from "./entity/favorite.entity";
 
 @Module({
     imports: [
@@ -24,7 +25,7 @@ import {RatingService} from "./service/rating.service";
             autoLoadEntities: true,
             synchronize: false,
         }),
-        TypeOrmModule.forFeature([Member, Rating]),
+        TypeOrmModule.forFeature([Member, Rating, Favorite]),
         JwtModule.registerAsync({
             global: true,
             inject: [ConfigService],
