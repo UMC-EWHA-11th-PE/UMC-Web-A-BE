@@ -6,7 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthController } from './controller/auth.controller';
 import { FavoriteController } from './controller/favorite.controller';
 import { MemberController } from './controller/member.controller';
-// import { MovieRecordController } from './controller/movie-record.controller';
+import { MovieRecordController } from './controller/movie-record.controller';
 import { RatingController } from './controller/rating.controller';
 import { Favorite } from './entity/favorite.entity';
 import { Member } from './entity/member.entity';
@@ -14,7 +14,7 @@ import { Rating } from './entity/rating.entity';
 import { AuthService } from './service/auth.service';
 import { FavoriteService } from './service/favorite.service';
 import { MemberService } from './service/member.service';
-// import { MovieRecordService } from './service/movie-record.service';
+import { MovieRecordService } from './service/movie-record.service';
 import { RatingService } from './service/rating.service';
 
 @Module({
@@ -49,14 +49,14 @@ import { RatingService } from './service/rating.service';
     MemberController,
     RatingController,
     FavoriteController,
-    // MovieRecordController,
+    MovieRecordController,
   ],
   providers: [
     AuthService,
     MemberService,
     RatingService,
     FavoriteService,
-    // MovieRecordService,
+    MovieRecordService,
   ],
 })
 export class AppModule {}
