@@ -88,7 +88,10 @@ export class FavoriteController {
     };
   }
 
-  @ApiOperation({ summary: '내 즐겨찾기 목록 조회' })
+  @ApiOperation({
+    summary: '내 즐겨찾기 목록 조회',
+    description: '로그인한 회원이 즐겨찾기에 추가한 영화 목록을 조회합니다.',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: '내 즐겨찾기 목록 조회 성공',
@@ -107,7 +110,11 @@ export class FavoriteController {
     };
   }
 
-  @ApiOperation({ summary: '영화의 즐겨찾기 여부 조회' })
+  @ApiOperation({
+    summary: '영화의 즐겨찾기 여부 조회',
+    description:
+      '로그인한 회원이 지정한 영화를 즐겨찾기에 추가했는지 확인합니다.',
+  })
   @ApiParam({
     name: 'movieId',
     description: 'TMDB 영화 ID',
@@ -138,7 +145,10 @@ export class FavoriteController {
     };
   }
 
-  @ApiOperation({ summary: '즐겨찾기 해제' })
+  @ApiOperation({
+    summary: '즐겨찾기 해제',
+    description: '로그인한 회원의 즐겨찾기에서 지정한 영화를 제거합니다.',
+  })
   @ApiParam({
     name: 'movieId',
     description: 'TMDB 영화 ID',

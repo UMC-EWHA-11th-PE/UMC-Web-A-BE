@@ -16,7 +16,7 @@ import { CreateMemberDto } from '../dto/create-member.dto';
 import { MemberUpdateRequestDto } from '../dto/member-update-request.dto';
 import { MemberService } from '../service/member.service';
 import { AuthGuard } from '../guard/auth.guard';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 @ApiTags('회원')
 @Controller('members')
 export class MemberController {
@@ -44,6 +44,11 @@ export class MemberController {
     };
   }
 
+  @ApiOperation({
+    summary: '내 정보 조회',
+    description: '로그인한 회원의 정보를 조회합니다.',
+  })
+  @ApiBearerAuth('bearerAuth')
   @Get('me')
   @UseGuards(AuthGuard) // 이 줄이 없으면 토큰 없이도 호출됩니다
   async getMyInfo(@Req() request: Request) {
@@ -58,6 +63,11 @@ export class MemberController {
       result,
     };
   }
+  @ApiOperation({
+    summary: '내 정보 수정',
+    description: '로그인한 회원의 정보를 수정합니다.',
+  })
+  @ApiBearerAuth('bearerAuth')
   @Patch('me')
   @UseGuards(AuthGuard)
   async updateMyInfo(

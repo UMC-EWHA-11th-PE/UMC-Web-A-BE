@@ -5,18 +5,23 @@ import { ApiException } from '../exception/api.exception';
 import { Favorite } from '../entity/favorite.entity';
 import { Member } from '../entity/member.entity';
 import { FavoriteService } from './favorite.service';
+import { jest } from '@jest/globals';
 
 describe('FavoriteService', () => {
   let favoriteService: FavoriteService;
 
   // 진짜 DB 대신 들어갈 가짜 Repository입니다. jest.fn()은 "호출을 기억하는 빈 함수"예요.
   const favoriteRepository = {
-    findOne: jest.fn(),
-    save: jest.fn(),
+    findOne:
+      jest.fn<() => Promise<Pick<Favorite, 'favoriteId' | 'movieId'> | null>>(),
+    save: jest.fn<
+      () => Promise<Pick<Favorite, 'favoriteId' | 'movieId' | 'createdAt'>>
+    >(),
     create: jest.fn(),
   };
+
   const memberRepository = {
-    findOneBy: jest.fn(),
+    findOneBy: jest.fn<() => Promise<Member | null>>(),
   };
 
   const member = { memberId: 1, nickname: '영화조아' } as Member;
