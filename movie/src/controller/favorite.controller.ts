@@ -1,7 +1,7 @@
-import {FavoriteService} from "../service/favorite.service";
 import {
     Body,
-    Controller, Delete,
+    Controller,
+    Delete,
     Get,
     HttpCode,
     HttpStatus,
@@ -9,18 +9,62 @@ import {
     ParseIntPipe,
     Post,
     Req,
-    UseGuards
-} from "@nestjs/common";
-import type {Request} from "express";
-import {AuthGuard} from "../guard/auth.guard";
-import {CreateFavoriteDto} from "../dto/create-favorite.dto";
+    UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import type { Request } from 'express';
+import { CreateFavoriteDto } from '../dto/create-favorite.dto';
+import { AuthGuard } from '../guard/auth.guard';
+import { FavoriteService } from '../service/favorite.service';
 
+@ApiTags('즐겨찾기')
+@ApiBearerAuth('bearerAuth') // 이 컨트롤러의 모든 API가 토큰을 요구합니다
 @Controller('favorites')
 @UseGuards(AuthGuard)
 export class FavoriteController {
-    constructor(private readonly favoriteService: FavoriteService) {
-    }
+    constructor(private readonly favoriteService: FavoriteService) {}
 
+    @ApiOperation({
+        summary: '즐겨찾기 등록',
+        description: '토큰의 주인인 회원이 TMDB 영화 ID 하나를 즐겨찾기에 추가합니다.',
+    })
+    // NestJS는 컨트롤러가 돌려주는 객체의 모양을 실행 중에 알 수 없어서, 응답 예시를 직접 적어줍니다.
+    @ApiResponse({
+        status: 201,
+        description: '즐겨찾기 등록 성공',
+        schema: {
+            example: {
+                isSuccess: true,
+                code: 'COMMON201',
+                message: '즐겨찾기를 등록했습니다.',
+                result: { favoriteId: 1, movieId: 550, createdAt: '2026-09-13T21:00:00.000Z' },
+            },
+        },
+    })
+    @ApiResponse({
+        status: 401,
+        description: '토큰이 없거나 유효하지 않음',
+        schema: {
+            example: {
+                isSuccess: false,
+                code: 'AUTH401_2',
+                message: '로그인이 필요한 요청입니다.',
+                result: null,
+            },
+        },
+    })
+    @ApiResponse({
+        status: 409,
+        description: '이미 즐겨찾기한 영화',
+        schema: {
+            example: {
+                isSuccess: false,
+                code: 'FAVORITE409_1',
+                message: '이미 이 영화를 즐겨찾기하셨습니다.',
+                result: null,
+            },
+        },
+    })
     @Post()
     @HttpCode(HttpStatus.CREATED)
     async create(@Req() request: Request, @Body() dto: CreateFavoriteDto) {
@@ -35,6 +79,12 @@ export class FavoriteController {
         };
     }
 
+    @ApiOperation({
+        summary: '내 즐겨찾기 목록 조회',
+        description: '토큰의 주인인 회원이 즐겨찾기한 영화 목록을 최신순으로 조회합니다. 토큰이 필요합니다.',
+    })
+    @ApiResponse({ status: 200, description: '즐겨찾기 목록 조회 성공 (COMMON200)' })
+    @ApiResponse({ status: 401, description: 'AUTH401_2 · 토큰이 없음 / AUTH401_3 · 유효하지 않은 토큰' })
     @Get()
     @HttpCode(HttpStatus.OK)
     async getMyFavorites(@Req() request: Request) {
@@ -49,12 +99,16 @@ export class FavoriteController {
         };
     }
 
+    @ApiOperation({
+        summary: '즐겨찾기 여부 조회',
+        description: '토큰의 주인인 회원이 해당 영화를 즐겨찾기했는지 true/false로 알려줍니다. 토큰이 필요합니다.',
+    })
+    @ApiResponse({ status: 200, description: '즐겨찾기 여부 조회 성공 (COMMON200)' })
+    @ApiResponse({ status: 400, description: 'COMMON400 · movieId가 숫자가 아님' })
+    @ApiResponse({ status: 401, description: 'AUTH401_2 · 토큰이 없음 / AUTH401_3 · 유효하지 않은 토큰' })
     @Get(':movieId')
     @HttpCode(HttpStatus.OK)
-    async getStatus(
-        @Req() request: Request,
-        @Param('movieId', ParseIntPipe) movieId: number,
-    ) {
+    async getStatus(@Req() request: Request, @Param('movieId', ParseIntPipe) movieId: number) {
         const memberId = request['memberId'] as number;
         const result = await this.favoriteService.getStatus(memberId, movieId);
 
@@ -66,6 +120,13 @@ export class FavoriteController {
         };
     }
 
+    @ApiOperation({
+        summary: '즐겨찾기 해제',
+        description: '토큰의 주인인 회원의 즐겨찾기에서 해당 영화를 뺍니다. 토큰이 필요합니다.',
+    })
+    @ApiResponse({ status: 200, description: '즐겨찾기 해제 성공 (COMMON200)' })
+    @ApiResponse({ status: 401, description: 'AUTH401_2 · 토큰이 없음 / AUTH401_3 · 유효하지 않은 토큰' })
+    @ApiResponse({ status: 404, description: 'FAVORITE404_1 · 즐겨찾기한 영화가 아님' })
     @Delete(':movieId')
     @HttpCode(HttpStatus.OK)
     async delete(@Req() request: Request, @Param('movieId', ParseIntPipe) movieId: number) {
@@ -77,6 +138,6 @@ export class FavoriteController {
             code: 'COMMON200',
             message: '즐겨찾기를 해제했습니다.',
             result: null,
-        }
+        };
     }
 }
