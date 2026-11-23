@@ -1,4 +1,3 @@
-// src/controller/favorite.controller.ts
 import {
   Body,
   Controller,
@@ -12,16 +11,69 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import type { Request } from 'express';
 import { CreateFavoriteDto } from '../dto/create-favorite.dto';
 import { AuthGuard } from '../guard/auth.guard';
 import { FavoriteService } from '../service/favorite.service';
 
+@ApiTags('즐겨찾기')
+@ApiBearerAuth('bearerAuth')
+@ApiResponse({
+  status: HttpStatus.UNAUTHORIZED,
+  description: '토큰이 없거나 유효하지 않음',
+  schema: {
+    example: {
+      isSuccess: false,
+      code: 'AUTH401_2',
+      message: '로그인이 필요한 요청입니다.',
+      result: null,
+    },
+  },
+})
 @Controller('favorites')
 @UseGuards(AuthGuard)
 export class FavoriteController {
   constructor(private readonly favoriteService: FavoriteService) {}
 
+  @ApiOperation({
+    summary: '즐겨찾기 등록',
+    description: '로그인한 회원의 즐겨찾기에 TMDB 영화 ID를 추가합니다.',
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: '즐겨찾기 등록 성공',
+    schema: {
+      example: {
+        isSuccess: true,
+        code: 'COMMON201',
+        message: '즐겨찾기를 등록했습니다.',
+        result: {
+          favoriteId: 1,
+          movieId: 550,
+          createdAt: '2026-09-13T21:00:00.000Z',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.CONFLICT,
+    description: '이미 즐겨찾기한 영화',
+    schema: {
+      example: {
+        isSuccess: false,
+        code: 'FAVORITE409_1',
+        message: '이미 이 영화를 즐겨찾기하셨습니다.',
+        result: null,
+      },
+    },
+  })
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async create(@Req() request: Request, @Body() dto: CreateFavoriteDto) {
@@ -36,6 +88,14 @@ export class FavoriteController {
     };
   }
 
+  @ApiOperation({
+    summary: '내 즐겨찾기 목록 조회',
+    description: '로그인한 회원이 즐겨찾기에 추가한 영화 목록을 조회합니다.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: '내 즐겨찾기 목록 조회 성공',
+  })
   @Get()
   @HttpCode(HttpStatus.OK)
   async getMyFavorites(@Req() request: Request) {
@@ -50,6 +110,24 @@ export class FavoriteController {
     };
   }
 
+  @ApiOperation({
+    summary: '영화의 즐겨찾기 여부 조회',
+    description:
+      '로그인한 회원이 지정한 영화를 즐겨찾기에 추가했는지 확인합니다.',
+  })
+  @ApiParam({
+    name: 'movieId',
+    description: 'TMDB 영화 ID',
+    schema: { type: 'integer', example: 550 },
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: '즐겨찾기 여부 조회 성공',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'movieId가 정수가 아님',
+  })
   @Get(':movieId')
   @HttpCode(HttpStatus.OK)
   async getStatus(
@@ -67,6 +145,31 @@ export class FavoriteController {
     };
   }
 
+  @ApiOperation({
+    summary: '즐겨찾기 해제',
+    description: '로그인한 회원의 즐겨찾기에서 지정한 영화를 제거합니다.',
+  })
+  @ApiParam({
+    name: 'movieId',
+    description: 'TMDB 영화 ID',
+    schema: { type: 'integer', example: 550 },
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: '즐겨찾기 해제 성공',
+    schema: {
+      example: {
+        isSuccess: true,
+        code: 'COMMON200',
+        message: '즐겨찾기를 해제했습니다.',
+        result: null,
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'movieId가 정수가 아님',
+  })
   @Delete(':movieId')
   @HttpCode(HttpStatus.OK)
   async delete(
