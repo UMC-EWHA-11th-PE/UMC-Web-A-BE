@@ -10,6 +10,11 @@ import {MemberController} from "./controller/member.controller";
 import {RatingController} from "./controller/rating.controller";
 import {MemberService} from "./service/member.service";
 import {RatingService} from "./service/rating.service";
+import {FavoriteController} from "./controller/favorite.controller";
+import {FavoriteService} from "./service/favorite.service";
+import {MovieRecordController} from "./controller/movie-record.controller";
+import {MovieRecordService} from "./service/movie-record.service";
+import {Favorite} from "./entity/favorite.entity";
 
 @Module({
     imports: [
@@ -24,7 +29,7 @@ import {RatingService} from "./service/rating.service";
             autoLoadEntities: true,
             synchronize: false,
         }),
-        TypeOrmModule.forFeature([Member, Rating]),
+        TypeOrmModule.forFeature([Member, Rating, Favorite]),
         JwtModule.registerAsync({
             global: true,
             inject: [ConfigService],
@@ -36,8 +41,8 @@ import {RatingService} from "./service/rating.service";
             }),
         }),
     ],
-    controllers: [AuthController, MemberController, RatingController],
-    providers: [AuthService, MemberService, RatingService],
+    controllers: [AuthController, MemberController, RatingController, FavoriteController, MovieRecordController],
+    providers: [AuthService, MemberService, RatingService, FavoriteService, MovieRecordService],
 })
 export class AppModule {
 }
