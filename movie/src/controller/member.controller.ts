@@ -16,7 +16,8 @@ import { CreateMemberDto } from '../dto/create-member.dto';
 import { MemberUpdateRequestDto } from '../dto/member-update-request.dto';
 import { MemberService } from '../service/member.service';
 import { AuthGuard } from '../guard/auth.guard';
-
+import { ApiTags } from '@nestjs/swagger';
+@ApiTags('회원')
 @Controller('members')
 export class MemberController {
   constructor(private readonly memberService: MemberService) {}
@@ -42,7 +43,7 @@ export class MemberController {
       result,
     };
   }
-  // src/controller/member.controller.ts 에 아래 메서드를 추가합니다
+
   @Get('me')
   @UseGuards(AuthGuard) // 이 줄이 없으면 토큰 없이도 호출됩니다
   async getMyInfo(@Req() request: Request) {
@@ -57,7 +58,6 @@ export class MemberController {
       result,
     };
   }
-  // src/controller/member.controller.ts 에 아래 메서드를 추가합니다
   @Patch('me')
   @UseGuards(AuthGuard)
   async updateMyInfo(
