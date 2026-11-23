@@ -26,12 +26,12 @@ async function bootstrap() {
 
   // 5주차에서 설정한 CORS입니다. 지우면 브라우저에서 우리 API를 부를 때 CORS 에러가 다시 납니다.
   app.enableCors({
-    origin: 'http://localhost:5173',
+    origin: ['http://localhost:5173', 'http://localhost:63342'], // 5173: 프론트 개발 서버, 63342: WebStorm 내장 서버
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   });
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
   app.useGlobalFilters(new HttpExceptionFilter());
-  await app.listen(3000);
+  await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
